@@ -181,13 +181,10 @@ const bannerOffset =
 		@apply translate-y-[var(--bannerOffset)];
 		height: auto !important;
 	}
-	/* Banner image: natural aspect ratio, clipped by wrapper's overflow-hidden */
+	/* Banner image: natural aspect ratio, slight zoom on all pages */
 	.enable-banner #banner img {
 		height: auto !important;
 		object-fit: unset !important;
-	}
-	/* Homepage banner: slight zoom for cinematic look (edges cropped) */
-	.enable-banner.is-home #banner img {
 		transform: scale(1.1);
 		transform-origin: center top;
 	}
