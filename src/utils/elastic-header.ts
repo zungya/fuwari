@@ -4,6 +4,9 @@
  * The banner state is directly tied to the scroll input — no springs, no lock, no bounce.
  * Scroll up at the top → banner expands. Scroll down → banner retracts.
  * Like the banner is part of the scrollable content itself.
+ *
+ * Uses lerp smoothing so Windows discrete wheel scrolling (120px jumps)
+ * feels as smooth as macOS pixel-level scrolling.
  */
 export function initElasticHeader(): () => void {
   if (!document.body.classList.contains("is-home")) return () => {};
@@ -18,16 +21,18 @@ export function initElasticHeader(): () => void {
     return (scrollTarget as HTMLElement).scrollTop;
   }
 
-  let pullDistance = 0;
-  let startY = 0;
+  // targetPull = where we want to be (set instantly by input)
+  // currentPull = where we are now (smoothed toward targetPull each frame)
+  let targetPull = 0;
+  let currentPull = 0;
+  let rafId = 0;
   let isTouching = false;
 
   const RESISTANCE = 0.4;
-  const RETRACT_SPEED = 0.5; // how fast scrolling down retracts the banner
+  const RETRACT_SPEED = 0.5;
+  const LERP_FACTOR = 0.2; // higher = snappier, lower = smoother
 
   function getMaxPull(): number {
-    // Desktop: pull ~60vh to reach fullscreen
-    // Mobile: pull ~60vh to reach fullscreen (banner starts at 40vh)
     return window.innerHeight * 0.6;
   }
 
@@ -56,15 +61,42 @@ export function initElasticHeader(): () => void {
     root.style.setProperty("--elastic-scale", `${scale}`);
   }
 
+  // --- Animation loop: smooth lerp from currentPull toward targetPull ---
+  function tick(): void {
+    const diff = targetPull - currentPull;
+    if (Math.abs(diff) < 0.5) {
+      // Close enough — snap to target and stop
+      currentPull = targetPull;
+      applyPull(currentPull);
+      return;
+    }
+    currentPull += diff * LERP_FACTOR;
+    applyPull(currentPull);
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startAnimation(): void {
+    if (!rafId) {
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  function stopAnimation(): void {
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+    }
+  }
+
   // --- Wheel handler (desktop) ---
   function onWheel(e: WheelEvent): void {
     if (!document.body.classList.contains("is-home")) return;
 
     // If scrolled into the page, reset banner
     if (getScrollTop() > 0) {
-      if (pullDistance > 0) {
-        pullDistance = 0;
-        applyPull(0);
+      if (targetPull > 0) {
+        targetPull = 0;
+        startAnimation();
       }
       return;
     }
@@ -72,41 +104,45 @@ export function initElasticHeader(): () => void {
     if (e.deltaY < 0) {
       // Scroll up at top → expand banner
       e.preventDefault();
-      pullDistance += Math.abs(e.deltaY) * RESISTANCE;
-      pullDistance = Math.min(pullDistance, getMaxPull());
-      applyPull(pullDistance);
-    } else if (e.deltaY > 0 && pullDistance > 0) {
+      targetPull += Math.abs(e.deltaY) * RESISTANCE;
+      targetPull = Math.min(targetPull, getMaxPull());
+      startAnimation();
+    } else if (e.deltaY > 0 && targetPull > 0) {
       // Scroll down while expanded → retract banner proportionally
       e.preventDefault();
-      pullDistance -= e.deltaY * RETRACT_SPEED;
-      if (pullDistance < 0) pullDistance = 0;
-      applyPull(pullDistance);
+      targetPull -= e.deltaY * RETRACT_SPEED;
+      if (targetPull < 0) targetPull = 0;
+      startAnimation();
     }
   }
 
   // --- Touch handlers (mobile) ---
+  let lastTouchY = 0;
+
   function onTouchStart(e: TouchEvent): void {
     if (!document.body.classList.contains("is-home")) return;
     if (getScrollTop() <= 0) {
-      startY = e.touches[0].clientY;
+      lastTouchY = e.touches[0].clientY;
       isTouching = true;
     }
   }
 
   function onTouchMove(e: TouchEvent): void {
     if (!isTouching) return;
-    const deltaY = e.touches[0].clientY - startY;
-    if (deltaY > 0 && getScrollTop() <= 0) {
+    const currentY = e.touches[0].clientY;
+    const delta = currentY - lastTouchY;
+    lastTouchY = currentY;
+
+    if (delta > 0 && getScrollTop() <= 0) {
       e.preventDefault();
-      pullDistance = deltaY * RESISTANCE;
-      pullDistance = Math.min(pullDistance, getMaxPull());
-      applyPull(pullDistance);
-    } else if (deltaY < 0 && pullDistance > 0) {
+      targetPull += delta * RESISTANCE;
+      targetPull = Math.min(targetPull, getMaxPull());
+      startAnimation();
+    } else if (delta < 0 && targetPull > 0) {
       e.preventDefault();
-      pullDistance = Math.abs(deltaY) * RESISTANCE;
-      // Invert: pulling up from expanded = retract
-      pullDistance = Math.max(0, pullDistance);
-      applyPull(pullDistance);
+      targetPull += delta * RETRACT_SPEED;
+      if (targetPull < 0) targetPull = 0;
+      startAnimation();
     }
   }
 
@@ -125,11 +161,13 @@ export function initElasticHeader(): () => void {
 
   // --- Cleanup ---
   return () => {
+    stopAnimation();
     wheelTarget.removeEventListener("wheel", onWheel as EventListener);
     touchTarget.removeEventListener("touchstart", onTouchStart as EventListener);
     touchTarget.removeEventListener("touchmove", onTouchMove as EventListener);
     touchTarget.removeEventListener("touchend", onTouchEnd as EventListener);
-    pullDistance = 0;
+    targetPull = 0;
+    currentPull = 0;
     applyPull(0);
   };
 }
