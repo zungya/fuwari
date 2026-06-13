@@ -101,3 +101,35 @@ export type BlogPostData = {
 export type ExpressiveCodeConfig = {
 	theme: string;
 };
+
+/** Parameters for the desktop-only elastic (stretchy) banner effect. */
+export interface ElasticBannerConfig {
+	enable: boolean;
+	/** Max pull distance = viewport height × this ratio. */
+	maxPullRatio: number;
+	/** Wheel-down pull resistance (higher = harder to pull). */
+	wheelResistance: number;
+	/** Retract speed when releasing / scrolling back up. */
+	retractSpeed: number;
+	/** Lerp smoothing factor (lower = smoother/slower). */
+	lerpFactor: number;
+	/** Resistance curve power (higher = increasingly harder near max pull). */
+	resistancePower: number;
+	/** Initial banner image scale before pulling. */
+	initialScale: number;
+	/** How much the scale eases back toward 1.0 as pull progresses. */
+	scaleRange: number;
+	/** Content "peel-off" multiplier (>1 = content moves faster than banner for depth). */
+	contentMultiplier: number;
+}
+
+/** Desktop-only configuration (components under src/components/desktop/). */
+export interface DesktopConfig {
+	elasticBanner: ElasticBannerConfig;
+}
+
+/** Mobile-only configuration (components under src/components/mobile/). Reserved for future use. */
+export interface MobileConfig {
+	// Add mobile-specific options here as they are introduced.
+}
+

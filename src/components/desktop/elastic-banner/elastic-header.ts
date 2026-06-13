@@ -1,14 +1,22 @@
 /**
- * Elastic Header (Stretchy Banner) Effect
+ * Elastic Banner — desktop-only stretchy header effect.
  *
- * Desktop only — smooth banner expansion via mouse wheel.
- * Mobile uses a simple static banner (no pull-to-expand).
+ * Desktop-only component (see src/components/desktop/). On mobile the banner is
+ * a simple static image — this whole module bails out early when the viewport
+ * is mobile (see isMobileViewport()). Future "banner fully revealed" canvas
+ * content should live alongside this file in src/components/desktop/elastic-banner/.
  */
+import { isMobileViewport } from "../../../utils/device";
+import { desktopConfig } from "../../../config";
+
+const cfg = desktopConfig.elasticBanner;
+
 export function initElasticHeader(): () => void {
+  if (!cfg.enable) return () => {};
   if (!document.body.classList.contains("is-home")) return () => {};
   if (!document.getElementById("banner-wrapper")) return () => {};
   // Mobile: no elastic effect, static banner only
-  if (window.innerWidth < 768) return () => {};
+  if (isMobileViewport()) return () => {};
 
   const osViewport = document.querySelector(".os-viewport") as HTMLElement | null;
   const useNativeScroll = !osViewport;
@@ -22,15 +30,13 @@ export function initElasticHeader(): () => void {
   let targetPull = 0;
   let currentPull = 0;
   let rafId = 0;
-  let isTouching = false;
 
-  const WHEEL_RESISTANCE = 0.4;
-  const TOUCH_RESISTANCE = 1.0;
-  const RETRACT_SPEED = 0.5;
-  const LERP_FACTOR = 0.35;
+  const WHEEL_RESISTANCE = cfg.wheelResistance;
+  const RETRACT_SPEED = cfg.retractSpeed;
+  const LERP_FACTOR = cfg.lerpFactor;
 
   function getMaxPull(): number {
-    return window.innerHeight * 0.6;
+    return window.innerHeight * cfg.maxPullRatio;
   }
 
   function applyPull(px: number): void {
@@ -47,16 +53,15 @@ export function initElasticHeader(): () => void {
 
     const maxPull = getMaxPull();
     const clamped = Math.min(Math.max(px, 0), maxPull);
-    const resisted = maxPull * (1 - Math.pow(1 - clamped / maxPull, 1.1));
+    const resisted = maxPull * (1 - Math.pow(1 - clamped / maxPull, cfg.resistancePower));
 
     root.style.setProperty("--elastic-pull", `${resisted}px`);
-    // Desktop: content peels away faster for depth effect
-    // Mobile: same speed to prevent gray gap
-    const contentMultiplier = window.innerWidth < 768 ? 1.0 : 1.3;
+    // Content peels away faster than banner for depth effect.
+    const contentMultiplier = cfg.contentMultiplier;
     root.style.setProperty("--elastic-pull-content", `${resisted * contentMultiplier}px`);
 
     const progress = resisted / maxPull;
-    const scale = 1.15 - 0.15 * progress;
+    const scale = cfg.initialScale - cfg.scaleRange * progress;
     root.style.setProperty("--elastic-scale", `${scale}`);
   }
 
@@ -112,55 +117,15 @@ export function initElasticHeader(): () => void {
     }
   }
 
-  // --- Touch handlers (mobile) ---
-  // Absolute tracking: finger position directly maps to pull distance.
-  // Once touch starts at top, all moves are handled — no re-checking scrollTop in move.
-  let touchStartY = 0;
-  let pullAtTouchStart = 0;
-
-  function onTouchStart(e: TouchEvent): void {
-    if (!document.body.classList.contains("is-home")) return;
-    if (getScrollTop() <= 2) {
-      touchStartY = e.touches[0].clientY;
-      pullAtTouchStart = targetPull;
-      isTouching = true;
-    }
-  }
-
-  function onTouchMove(e: TouchEvent): void {
-    if (!isTouching) return;
-    // Always prevent default to stop browser scroll while pulling
-    e.preventDefault();
-
-    const fingerY = e.touches[0].clientY;
-    const dragged = fingerY - touchStartY;
-
-    targetPull = pullAtTouchStart + dragged * TOUCH_RESISTANCE;
-    targetPull = Math.min(Math.max(targetPull, 0), getMaxPull());
-    startAnimation();
-  }
-
-  function onTouchEnd(): void {
-    isTouching = false;
-  }
-
   // --- Register listeners ---
   const wheelTarget: EventTarget = useNativeScroll ? window : scrollTarget;
-  // Use document for touch — more reliable on mobile than window
-  const touchTarget: EventTarget = document;
 
   wheelTarget.addEventListener("wheel", onWheel as EventListener, { passive: false });
-  touchTarget.addEventListener("touchstart", onTouchStart as EventListener, { passive: true });
-  touchTarget.addEventListener("touchmove", onTouchMove as EventListener, { passive: false });
-  touchTarget.addEventListener("touchend", onTouchEnd as EventListener, { passive: true });
 
   // --- Cleanup ---
   return () => {
     stopAnimation();
     wheelTarget.removeEventListener("wheel", onWheel as EventListener);
-    touchTarget.removeEventListener("touchstart", onTouchStart as EventListener);
-    touchTarget.removeEventListener("touchmove", onTouchMove as EventListener);
-    touchTarget.removeEventListener("touchend", onTouchEnd as EventListener);
     targetPull = 0;
     currentPull = 0;
     applyPull(0);
