@@ -25,9 +25,9 @@ export function initElasticHeader(): () => void {
   // Wheel: lerp smoothing for Windows discrete jumps
   // Touch: absolute tracking + lerp for smoothness
   const WHEEL_RESISTANCE = 0.4;
-  const TOUCH_RESISTANCE = 0.8;
+  const TOUCH_RESISTANCE = 1.0;
   const RETRACT_SPEED = 0.5;
-  const LERP_FACTOR = 0.25;
+  const LERP_FACTOR = 0.35;
 
   function getMaxPull(): number {
     return window.innerHeight * 0.6;
