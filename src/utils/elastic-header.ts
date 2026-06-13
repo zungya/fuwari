@@ -50,6 +50,8 @@ export function initElasticHeader(): () => void {
     const resisted = maxPull * (1 - Math.pow(1 - clamped / maxPull, 1.3));
 
     root.style.setProperty("--elastic-pull", `${resisted}px`);
+    // Content moves 1.5x faster for a stronger "peeling away" feel
+    root.style.setProperty("--elastic-pull-content", `${resisted * 1.5}px`);
 
     const progress = resisted / maxPull;
     const scale = 1.15 - 0.15 * progress;

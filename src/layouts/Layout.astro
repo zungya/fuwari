@@ -219,9 +219,9 @@ const bannerOffset =
 		height: calc(var(--banner-height-home) + var(--elastic-pull, 0px));
 		transition: none !important;
 	}
-	/* Content slides down for "peeling away" effect */
+	/* Content slides down for "peeling away" effect (1.5x faster than banner) */
 	.enable-banner.is-home.elastic-active #main-grid {
-		transform: translateY(calc(var(--banner-height-extend) + var(--elastic-pull, 0px)));
+		transform: translateY(calc(var(--banner-height-extend) + var(--elastic-pull-content, 0px)));
 		transition: none !important;
 	}
 	/* Navbar stays at top — no elastic transform */
