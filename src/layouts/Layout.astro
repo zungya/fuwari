@@ -184,13 +184,14 @@ const bannerOffset =
 	/* Banner image: natural aspect ratio, slight zoom on all pages */
 	.enable-banner #banner img {
 		height: auto !important;
+		min-height: 100% !important;
 		object-fit: unset !important;
-		transform: scale(1.1);
+		transform: scale(1.15);
 		transform-origin: center top;
 	}
 	/* During pull: gradually restore to natural scale, revealing full image */
 	.enable-banner.is-home.elastic-active #banner img {
-		transform: scale(var(--elastic-scale, 1.1));
+		transform: scale(var(--elastic-scale, 1.15));
 		transform-origin: center top;
 	}
 	.enable-banner.is-home #main-grid {
@@ -224,6 +225,29 @@ const bannerOffset =
 		transition: none !important;
 	}
 	/* Navbar stays at top — no elastic transform */
+
+	/* --- Mobile adaptations --- */
+	@media (max-width: 767px) {
+		/* Taller banner for portrait mobile images */
+		.enable-banner.is-home #banner-wrapper {
+			height: 40vh !important;
+		}
+		.enable-banner #banner-wrapper {
+			height: 40vh !important;
+		}
+		/* Slight zoom on mobile, scales back during pull */
+		.enable-banner #banner img {
+			transform: scale(1.15) !important;
+			transform-origin: center top !important;
+		}
+		.enable-banner.is-home.elastic-active #banner img {
+			transform: scale(var(--elastic-scale, 1.15)) !important;
+			transform-origin: center top !important;
+		}
+		.enable-banner.is-home.elastic-active #banner-wrapper {
+			height: calc(40vh + var(--elastic-pull, 0px)) !important;
+		}
+	}
 }
 </style>
 

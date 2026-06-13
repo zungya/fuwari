@@ -26,8 +26,8 @@ export function initElasticHeader(): () => void {
   const RETRACT_SPEED = 0.5; // how fast scrolling down retracts the banner
 
   function getMaxPull(): number {
-    // Pull enough to reach ~100vh total (fullscreen)
-    // BANNER_HEIGHT_HOME is 45vh, so we need ~55vh more
+    // Desktop: pull ~60vh to reach fullscreen
+    // Mobile: pull ~60vh to reach fullscreen (banner starts at 40vh)
     return window.innerHeight * 0.6;
   }
 
@@ -50,9 +50,9 @@ export function initElasticHeader(): () => void {
 
     root.style.setProperty("--elastic-pull", `${resisted}px`);
 
-    // Scale: 1.1 → 1.0 as pull progresses
+    // Scale: 1.15→1.0 as pull progresses (both desktop and mobile)
     const progress = resisted / maxPull;
-    const scale = 1.1 - 0.1 * progress;
+    const scale = 1.15 - 0.15 * progress;
     root.style.setProperty("--elastic-scale", `${scale}`);
   }
 
