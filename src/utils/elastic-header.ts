@@ -5,8 +5,8 @@
  * Scroll up at the top → banner expands. Scroll down → banner retracts.
  * Like the banner is part of the scrollable content itself.
  *
- * Uses lerp smoothing so Windows discrete wheel scrolling (120px jumps)
- * feels as smooth as macOS pixel-level scrolling.
+ * Wheel events use lerp smoothing (Windows discrete scrolling → smooth animation).
+ * Touch events bypass lerp for direct 1:1 finger response.
  */
 export function initElasticHeader(): () => void {
   if (!document.body.classList.contains("is-home")) return () => {};
@@ -22,15 +22,16 @@ export function initElasticHeader(): () => void {
   }
 
   // targetPull = where we want to be (set instantly by input)
-  // currentPull = where we are now (smoothed toward targetPull each frame)
+  // currentPull = where we are now (smoothed toward targetPull each frame, wheel only)
   let targetPull = 0;
   let currentPull = 0;
   let rafId = 0;
   let isTouching = false;
 
-  const RESISTANCE = 0.4;
+  const RESISTANCE = 0.4;       // wheel: input attenuation
+  const TOUCH_RESISTANCE = 0.6; // touch: less attenuation for easier pulling on mobile
   const RETRACT_SPEED = 0.5;
-  const LERP_FACTOR = 0.2; // higher = snappier, lower = smoother
+  const LERP_FACTOR = 0.2;      // wheel smoothing factor
 
   function getMaxPull(): number {
     return window.innerHeight * 0.6;
@@ -50,24 +51,22 @@ export function initElasticHeader(): () => void {
 
     const maxPull = getMaxPull();
     const clamped = Math.min(Math.max(px, 0), maxPull);
-    // Mild resistance (power 1.3) — softer curve so the last portion doesn't feel sluggish
     const resisted = maxPull * (1 - Math.pow(1 - clamped / maxPull, 1.3));
 
     root.style.setProperty("--elastic-pull", `${resisted}px`);
 
-    // Scale: 1.15→1.0 as pull progresses (both desktop and mobile)
     const progress = resisted / maxPull;
     const scale = 1.15 - 0.15 * progress;
     root.style.setProperty("--elastic-scale", `${scale}`);
   }
 
-  // --- Animation loop: smooth lerp from currentPull toward targetPull ---
+  // --- Animation loop: smooth lerp for wheel events only ---
   function tick(): void {
     const diff = targetPull - currentPull;
     if (Math.abs(diff) < 0.5) {
-      // Close enough — snap to target and stop
       currentPull = targetPull;
       applyPull(currentPull);
+      rafId = 0;
       return;
     }
     currentPull += diff * LERP_FACTOR;
@@ -88,11 +87,10 @@ export function initElasticHeader(): () => void {
     }
   }
 
-  // --- Wheel handler (desktop) ---
+  // --- Wheel handler (desktop) — uses lerp smoothing ---
   function onWheel(e: WheelEvent): void {
     if (!document.body.classList.contains("is-home")) return;
 
-    // If scrolled into the page, reset banner
     if (getScrollTop() > 0) {
       if (targetPull > 0) {
         targetPull = 0;
@@ -102,13 +100,11 @@ export function initElasticHeader(): () => void {
     }
 
     if (e.deltaY < 0) {
-      // Scroll up at top → expand banner
       e.preventDefault();
       targetPull += Math.abs(e.deltaY) * RESISTANCE;
       targetPull = Math.min(targetPull, getMaxPull());
       startAnimation();
     } else if (e.deltaY > 0 && targetPull > 0) {
-      // Scroll down while expanded → retract banner proportionally
       e.preventDefault();
       targetPull -= e.deltaY * RETRACT_SPEED;
       if (targetPull < 0) targetPull = 0;
@@ -116,7 +112,7 @@ export function initElasticHeader(): () => void {
     }
   }
 
-  // --- Touch handlers (mobile) ---
+  // --- Touch handlers (mobile) — direct 1:1 response, no lerp ---
   let lastTouchY = 0;
 
   function onTouchStart(e: TouchEvent): void {
@@ -134,15 +130,21 @@ export function initElasticHeader(): () => void {
     lastTouchY = currentY;
 
     if (delta > 0 && getScrollTop() <= 0) {
+      // Finger moving down = expand banner (direct, no lerp)
       e.preventDefault();
-      targetPull += delta * RESISTANCE;
+      targetPull += delta * TOUCH_RESISTANCE;
       targetPull = Math.min(targetPull, getMaxPull());
-      startAnimation();
+      currentPull = targetPull;
+      stopAnimation();
+      applyPull(currentPull);
     } else if (delta < 0 && targetPull > 0) {
+      // Finger moving up = retract banner (direct, no lerp)
       e.preventDefault();
       targetPull += delta * RETRACT_SPEED;
       if (targetPull < 0) targetPull = 0;
-      startAnimation();
+      currentPull = targetPull;
+      stopAnimation();
+      applyPull(currentPull);
     }
   }
 
