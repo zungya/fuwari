@@ -207,9 +207,11 @@ const bannerOffset =
 		@apply opacity-0 -translate-y-16
 	}
 
-	/* Suppress native overscroll on homepage so our elastic effect takes over */
-	.enable-banner.is-home {
-		overscroll-behavior-y: none;
+	/* Suppress native overscroll on homepage (desktop only) */
+	@media (min-width: 768px) {
+		.enable-banner.is-home {
+			overscroll-behavior-y: none;
+		}
 	}
 
 	/* --- Elastic header (stretchy banner) overrides --- */
@@ -219,33 +221,23 @@ const bannerOffset =
 		height: calc(var(--banner-height-home) + var(--elastic-pull, 0px));
 		transition: none !important;
 	}
-	/* Content slides down for "peeling away" effect (1.5x faster than banner) */
+	/* Content slides down for "peeling away" effect */
 	.enable-banner.is-home.elastic-active #main-grid {
 		transform: translateY(calc(var(--banner-height-extend) + var(--elastic-pull-content, 0px)));
 		transition: none !important;
 	}
-	/* Navbar stays at top — no elastic transform */
 
-	/* --- Mobile adaptations --- */
+	/* --- Mobile: static banner, no elastic effect --- */
 	@media (max-width: 767px) {
-		/* Taller banner for portrait mobile images */
 		.enable-banner.is-home #banner-wrapper {
 			height: 40vh !important;
 		}
 		.enable-banner #banner-wrapper {
 			height: 40vh !important;
 		}
-		/* Slight zoom on mobile, scales back during pull */
 		.enable-banner #banner img {
 			transform: scale(1.15) !important;
 			transform-origin: center top !important;
-		}
-		.enable-banner.is-home.elastic-active #banner img {
-			transform: scale(var(--elastic-scale, 1.15)) !important;
-			transform-origin: center top !important;
-		}
-		.enable-banner.is-home.elastic-active #banner-wrapper {
-			height: calc(40vh + var(--elastic-pull, 0px)) !important;
 		}
 	}
 }

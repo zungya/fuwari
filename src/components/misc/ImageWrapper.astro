@@ -41,8 +41,9 @@ if (isLocal) {
 		console.error(
 			`\n[ERROR] Image file not found: ${normalizedPath.replace("../../", "src/")}`,
 		);
+	} else {
+		img = await file();
 	}
-	img = await file();
 }
 
 // Mobile image handling
@@ -70,8 +71,9 @@ if (mobileSrc) {
 			console.error(
 				`\n[ERROR] Mobile image file not found: ${normalizedPath.replace("../../", "src/")}`,
 			);
+		} else {
+			mobileImg = await file();
 		}
-		mobileImg = await file();
 	}
 }
 

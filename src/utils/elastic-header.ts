@@ -1,12 +1,14 @@
 /**
  * Elastic Header (Stretchy Banner) Effect
  *
- * Wheel events: lerp smoothing (Windows discrete scrolling → smooth animation).
- * Touch events: absolute finger tracking with lerp for buttery-smooth feel.
+ * Desktop only — smooth banner expansion via mouse wheel.
+ * Mobile uses a simple static banner (no pull-to-expand).
  */
 export function initElasticHeader(): () => void {
   if (!document.body.classList.contains("is-home")) return () => {};
   if (!document.getElementById("banner-wrapper")) return () => {};
+  // Mobile: no elastic effect, static banner only
+  if (window.innerWidth < 768) return () => {};
 
   const osViewport = document.querySelector(".os-viewport") as HTMLElement | null;
   const useNativeScroll = !osViewport;
@@ -22,8 +24,6 @@ export function initElasticHeader(): () => void {
   let rafId = 0;
   let isTouching = false;
 
-  // Wheel: lerp smoothing for Windows discrete jumps
-  // Touch: absolute tracking + lerp for smoothness
   const WHEEL_RESISTANCE = 0.4;
   const TOUCH_RESISTANCE = 1.0;
   const RETRACT_SPEED = 0.5;
@@ -47,11 +47,13 @@ export function initElasticHeader(): () => void {
 
     const maxPull = getMaxPull();
     const clamped = Math.min(Math.max(px, 0), maxPull);
-    const resisted = maxPull * (1 - Math.pow(1 - clamped / maxPull, 1.3));
+    const resisted = maxPull * (1 - Math.pow(1 - clamped / maxPull, 1.1));
 
     root.style.setProperty("--elastic-pull", `${resisted}px`);
-    // Content moves 1.5x faster for a stronger "peeling away" feel
-    root.style.setProperty("--elastic-pull-content", `${resisted * 1.5}px`);
+    // Desktop: content peels away faster for depth effect
+    // Mobile: same speed to prevent gray gap
+    const contentMultiplier = window.innerWidth < 768 ? 1.0 : 1.3;
+    root.style.setProperty("--elastic-pull-content", `${resisted * contentMultiplier}px`);
 
     const progress = resisted / maxPull;
     const scale = 1.15 - 0.15 * progress;
@@ -111,39 +113,31 @@ export function initElasticHeader(): () => void {
   }
 
   // --- Touch handlers (mobile) ---
-  // Absolute tracking: banner position directly maps to finger distance from touch start.
-  // Lerp smooths out touch event jitter for a buttery feel.
+  // Absolute tracking: finger position directly maps to pull distance.
+  // Once touch starts at top, all moves are handled — no re-checking scrollTop in move.
   let touchStartY = 0;
   let pullAtTouchStart = 0;
 
   function onTouchStart(e: TouchEvent): void {
     if (!document.body.classList.contains("is-home")) return;
-    if (getScrollTop() <= 0) {
+    if (getScrollTop() <= 2) {
       touchStartY = e.touches[0].clientY;
-      pullAtTouchStart = targetPull; // remember where we were when touch started
+      pullAtTouchStart = targetPull;
       isTouching = true;
     }
   }
 
   function onTouchMove(e: TouchEvent): void {
     if (!isTouching) return;
-    const fingerY = e.touches[0].clientY;
-    const dragged = fingerY - touchStartY; // positive = finger moved down
+    // Always prevent default to stop browser scroll while pulling
+    e.preventDefault();
 
-    if (dragged >= 0 && getScrollTop() <= 0) {
-      // Finger below start = expand
-      e.preventDefault();
-      targetPull = pullAtTouchStart + dragged * TOUCH_RESISTANCE;
-      targetPull = Math.min(targetPull, getMaxPull());
-      if (targetPull < 0) targetPull = 0;
-      startAnimation();
-    } else if (dragged < 0) {
-      // Finger above start = retract
-      e.preventDefault();
-      targetPull = pullAtTouchStart + dragged * TOUCH_RESISTANCE;
-      if (targetPull < 0) targetPull = 0;
-      startAnimation();
-    }
+    const fingerY = e.touches[0].clientY;
+    const dragged = fingerY - touchStartY;
+
+    targetPull = pullAtTouchStart + dragged * TOUCH_RESISTANCE;
+    targetPull = Math.min(Math.max(targetPull, 0), getMaxPull());
+    startAnimation();
   }
 
   function onTouchEnd(): void {
@@ -152,7 +146,8 @@ export function initElasticHeader(): () => void {
 
   // --- Register listeners ---
   const wheelTarget: EventTarget = useNativeScroll ? window : scrollTarget;
-  const touchTarget: EventTarget = scrollTarget;
+  // Use document for touch — more reliable on mobile than window
+  const touchTarget: EventTarget = document;
 
   wheelTarget.addEventListener("wheel", onWheel as EventListener, { passive: false });
   touchTarget.addEventListener("touchstart", onTouchStart as EventListener, { passive: true });
