@@ -39,7 +39,7 @@ src/
 │   ├── common/           # 通用可复用 UI（ButtonLink, ImageWrapper, Markdown, Pagination, WidgetLayout...）
 │   ├── controls/         # 交互控件（BackToTop, DisplaySettings, LightDarkSwitch, Search）
 │   ├── layout/           # 页面结构（Navbar, Footer, PostCard, PostPage, PostMeta, ArchivePanel, NavMenuPanel, ConfigCarrier）
-│   ├── widget/           # 侧边栏小部件（SideBar, Categories, Tags, Profile, TOC）
+│   ├── widget/           # 侧边栏小部件（SideBar, Categories, Tags, Profile, TOC, Music）
 │   ├── misc/             # 杂项（License）
 │   ├── desktop/          # 桌面端独有（移动端不加载）— elastic-banner/
 │   └── mobile/           # 移动端独有（桌面端不加载）— 预留
@@ -51,10 +51,11 @@ src/
 │   ├── expressive-code.ts# 代码块主题
 │   ├── desktop.ts        # 桌面端独有配置（弹性 banner 参数）
 │   ├── mobile.ts         # 移动端独有配置（预留）
+│   ├── music.ts          # 音乐播放器配置（歌单/模式/音量）
 │   └── index.ts          # barrel，统一 re-export
 ├── constants/            # 常量：constants.ts(布局数值) / icon.ts(默认favicon) / link-presets.ts(导航预设)
 ├── content/              # 文章 Markdown（posts/, spec/about.md）
-├── features/             # 跨端全局特效（预留：粒子、音乐栏）— 详见 features/README.md
+├── features/             # 跨端全局特效（已实现：音乐播放器 music/；预留：粒子）— 详见 features/README.md
 ├── i18n/                 # 国际化：i18nKey.ts / translation.ts / languages/(10 种语言)
 ├── layouts/
 │   ├── Layout.astro      # 全局布局 + 大量 CSS + Swup/弹性效果集成脚本
@@ -80,7 +81,7 @@ src/
 | 两端都有，只是布局不同 | 组件内 Tailwind 断点（`md:`/`lg:`） |
 | **桌面端独有**（移动端不渲染） | `components/desktop/` + 配置 `config/desktop.ts` |
 | **移动端独有**（桌面端不渲染） | `components/mobile/` + 配置 `config/mobile.ts` |
-| 两端都有的全局特效（粒子、音乐栏） | `features/`（顶层，跨端） |
+| 两端都有的全局特效（音乐播放器、粒子） | `features/`（顶层，跨端） |
 
 **判断口诀**：*关掉它页面还完整吗？* 否 → 结构/交互组件（必需）；是 → 增强型，再看两端是否都有来定 `desktop/`/`mobile/`/`features/`。
 
@@ -111,6 +112,14 @@ src/
 ### Swup 页面切换
 `Layout.astro` 的 `<script>` 管理生命周期：`visit:start` 锁内容高度防抖、`visit:end` 释放、重新初始化弹性效果。`#swup-container` 是切换容器。
 
+### 音乐播放器（侧边栏，跨端）
+本地音频 + Meting 在线歌单（`mode` 切换）的侧边栏播放器。**Manager/View 分离**保证 Swup 切页不断音：
+- **逻辑层** `features/music/manager.ts` — 单例，唯一 `<audio>` 挂 `document.body`（Swup 不替换）+ ES module 级单例；纯函数 `parseLRC`/`formatTime`/`computeNextIndex`/`buildMetingUrl` 有 vitest 单元测试。
+- **UI 视图层** `features/music/MusicPlayer.astro` — 模块化 TS `<script>`，`subscribe` 订阅 manager 状态刷新画面。
+- **侧边栏壳** `components/widget/Music.astro` — 用 `WidgetLayout` 包 MusicPlayer。
+
+参数（歌单/模式/音量/歌词开关）在 `config/music.ts`，音频放 `public/assets/music/`。Swup 不断音是 Manager/View 分离的硬要求，详见 `docs/superpowers/specs/2026-06-14-music-player-design.md`。
+
 ## 开发指南（常见任务速查）
 
 | 任务 | 去哪改 |
@@ -119,6 +128,7 @@ src/
 | 改导航栏链接 | `config/navbar.ts` |
 | 改个人资料/社交链接 | `config/profile.ts` |
 | 调弹性 banner 手感（阻力/速度/拉伸） | `config/desktop.ts` → `elasticBanner` |
+| 改音乐播放器（歌单/模式/音量/歌词） | `config/music.ts` |
 | 改移动端 banner 高度/样式 | `layouts/Layout.astro` 的 `@media (max-width:767px)` |
 | 改整体布局结构（侧边栏/网格） | `layouts/MainGridLayout.astro` |
 | 加新配置 | `types/config.ts` 定义类型 → `config/<name>.ts` → `config/index.ts` re-export |
@@ -134,6 +144,9 @@ src/
 - `layouts/MainGridLayout.astro` — 主网格布局结构
 - `config/site.ts` — 站点配置入口
 - `config/desktop.ts` — 桌面端参数（弹性 banner）
+- `config/music.ts` — 音乐播放器配置
+- `features/music/manager.ts` — 音乐播放器逻辑单例（Swup 切页不断音）
+- `features/music/MusicPlayer.astro` — 音乐播放器 UI 视图
 - `components/desktop/elastic-banner/elastic-header.ts` — 弹性效果逻辑
 - `utils/device.ts` — 视口判断
 - `astro.config.mjs` — 构建配置（集成 rehype/remark/expressive-code 插件）

@@ -43,8 +43,9 @@
 侧边栏里使用的功能小部件。
 
 - `Categories.astro` — 分类列表
+- `Music.astro` — 音乐播放器（包 `features/music/MusicPlayer.astro`）
 - `Profile.astro` — 个人信息 / 社交链接
-- `SideBar.astro` — 侧边栏（组合 Profile + Categories + Tags）
+- `SideBar.astro` — 侧边栏（组合 Profile + Music + Categories + Tags）
 - `Tags.astro` — 标签云
 - `TOC.astro` — 文章目录
 
