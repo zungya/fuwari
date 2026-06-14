@@ -259,9 +259,10 @@ import {
 	BANNER_HEIGHT_EXTEND,
 	MAIN_PANEL_OVERLAPS_BANNER_HEIGHT
 } from "../constants/constants";
-import { siteConfig } from '../config';
+import { siteConfig, musicConfig } from '../config';
 import { initElasticHeader } from "../components/desktop/elastic-banner/elastic-header";
 import { isDesktopViewport } from "../utils/device";
+import { initMusicManager } from "../features/music/manager";
 
 /* Preload fonts */
 // (async function() {
@@ -421,6 +422,9 @@ function init() {
 	initCustomScrollbar();
 	showBanner();
 	initElastic();
+	if (musicConfig.enable) {
+		initMusicManager(musicConfig);
+	}
 }
 
 let cleanupElastic: (() => void) | null = null;

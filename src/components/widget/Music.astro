@@ -1,0 +1,21 @@
+---
+import WidgetLayout from "@/components/common/WidgetLayout.astro";
+import MusicPlayer from "@/features/music/MusicPlayer.astro";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+interface Props {
+	id?: string;
+	class?: string;
+	style?: string;
+}
+const { id } = Astro.props;
+const className = Astro.props.class;
+const style = Astro.props.style;
+---
+
+<WidgetLayout id={id ? `${id}-layout` : "music-layout"} name={i18n(I18nKey.music)}
+	class={className} style={style}
+>
+	<MusicPlayer id={id} />
+</WidgetLayout>

@@ -5,3 +5,4 @@ export { licenseConfig } from "./license";
 export { expressiveCodeConfig } from "./expressive-code";
 export { desktopConfig } from "./desktop";
 export { mobileConfig } from "./mobile";
+export { musicConfig } from "./music";

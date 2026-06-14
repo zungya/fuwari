@@ -1,0 +1,697 @@
+---
+import { Icon } from "astro-icon/components";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+interface Props {
+	id?: string;
+}
+const { id } = Astro.props;
+const widgetId = id || `music-widget-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div
+	id={widgetId}
+	class="music-player-widget w-full relative transition-all duration-300"
+	role="region"
+	aria-label={i18n(I18nKey.music)}
+>
+	<!-- Top Row: Cover & Info -->
+	<div class="flex items-center gap-2 mb-2 px-1">
+		<!-- Circular Cover -->
+		<div class="relative shrink-0 w-14 h-14 group">
+			<div
+				class="w-full h-full rounded-full overflow-hidden shadow-lg border-2 border-white dark:border-neutral-700 relative z-10 bg-[var(--primary)]/10 flex items-center justify-center"
+			>
+				<Icon
+					name="material-symbols:music-note-rounded"
+					class="text-2xl text-[var(--primary)] opacity-40 absolute"
+					aria-hidden="true"
+				/>
+				<img
+					class="music-cover w-full h-full object-cover animate-spin-slow relative z-10 opacity-0 transition-opacity duration-300"
+					src=""
+					alt={i18n(I18nKey.musicCover)}
+					style="animation-play-state: paused;"
+				/>
+			</div>
+		</div>
+
+		<!-- Info Section -->
+		<div class="flex-1 min-w-0 flex flex-col overflow-hidden">
+			<div class="flex items-center justify-between overflow-hidden gap-2">
+				<div class="flex-1 min-w-0 overflow-hidden relative">
+					<h3
+						class="music-title font-bold text-base text-neutral-800 dark:text-neutral-100 leading-tight truncate"
+					>
+						{i18n(I18nKey.music)}
+					</h3>
+				</div>
+				<button
+					class="btn-lrc-toggle hover:text-[var(--primary)] transition-all duration-300 p-0.5 pr-2 transform active:scale-95 text-neutral-400 shrink-0"
+					title={i18n(I18nKey.musicLyrics)}
+					aria-label={i18n(I18nKey.musicLyrics)}
+				>
+					<Icon
+						name="material-symbols:subtitles-off-outline-rounded"
+						class="icon-lrc-off text-xl"
+						aria-hidden="true"
+					/>
+					<Icon
+						name="material-symbols:subtitles-outline-rounded"
+						class="icon-lrc-on text-xl hidden"
+						aria-hidden="true"
+					/>
+				</button>
+			</div>
+
+			<div class="min-w-0 overflow-hidden">
+				<p
+					class="music-artist text-xs font-medium text-neutral-500 dark:text-neutral-400 truncate"
+				>
+					{i18n(I18nKey.musicNoPlaying)}
+				</p>
+			</div>
+
+			<!-- Time & Volume -->
+			<div class="flex items-center gap-3 text-neutral-400 h-5">
+				<div
+					class="text-[10px] font-mono flex items-center gap-1 shrink-0 h-full"
+					aria-live="polite"
+				>
+					<span class="current-time">0:00</span>
+					<span class="opacity-50" aria-hidden="true">/</span>
+					<span class="total-time">0:00</span>
+				</div>
+				<div class="flex items-center gap-1 bg-transparent h-full ml-auto">
+					<button
+						class="btn-mute hover:text-[var(--primary)] transition-colors p-0.5 rounded-md flex items-center"
+						title={i18n(I18nKey.musicVolume)}
+						aria-label={i18n(I18nKey.musicVolume)}
+					>
+						<Icon
+							name="material-symbols:volume-up-rounded"
+							class="icon-vol-high text-lg"
+							aria-hidden="true"
+						/>
+						<Icon
+							name="material-symbols:volume-off-rounded"
+							class="icon-vol-mute text-lg hidden"
+							aria-hidden="true"
+						/>
+					</button>
+					<div class="w-16 transition-all duration-300 ease-out flex items-center">
+						<div
+							class="vol-container h-1 w-16 bg-neutral-300/50 dark:bg-neutral-500/40 rounded-full cursor-pointer relative ml-1"
+							role="slider"
+							aria-label={i18n(I18nKey.musicVolume)}
+							aria-valuemin="0"
+							aria-valuemax="100"
+							aria-valuenow="70"
+						>
+							<div
+								class="vol-bar absolute left-0 top-0 h-full bg-[var(--primary)] rounded-full w-[70%]"
+							></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Progress Bar -->
+	<div class="px-1">
+		<div
+			class="progress-container relative w-full h-1 bg-neutral-300/60 dark:bg-neutral-500/40 rounded-full cursor-pointer touch-none mb-2 group mt-2"
+			role="slider"
+			aria-label={i18n(I18nKey.musicProgress)}
+			aria-valuemin="0"
+			aria-valuemax="100"
+			aria-valuenow="0"
+		>
+			<div
+				class="progress-bar absolute left-0 top-0 h-full bg-[var(--primary)] rounded-full w-0 transition-[width] duration-100"
+			></div>
+			<div
+				class="progress-thumb absolute top-1/2 -mt-1.5 -ml-1.5 w-3 h-3 bg-[var(--primary)] ring-2 ring-white dark:ring-neutral-800 rounded-full shadow-sm scale-0 group-hover:scale-100 transition-transform duration-200"
+			></div>
+		</div>
+	</div>
+
+	<!-- Controls -->
+	<div class="flex items-center justify-between px-1 select-none">
+		<button
+			class="btn-repeat text-neutral-300 dark:text-neutral-600 hover:text-[var(--primary)] transition-colors p-2 active:scale-95"
+			title={i18n(I18nKey.musicPlayMode)}
+			aria-label={i18n(I18nKey.musicPlayMode)}
+		>
+			<Icon name="material-symbols:repeat-rounded" class="icon-repeat text-xl" aria-hidden="true" />
+			<Icon name="material-symbols:repeat-one-rounded" class="icon-repeat-one text-xl hidden" aria-hidden="true" />
+			<Icon name="material-symbols:shuffle-rounded" class="icon-shuffle text-xl hidden" aria-hidden="true" />
+		</button>
+		<button
+			class="btn-prev text-neutral-600 dark:text-neutral-300 hover:text-[var(--primary)] transition-colors p-2 active:scale-95"
+			title={i18n(I18nKey.musicPrev)}
+			aria-label={i18n(I18nKey.musicPrev)}
+		>
+			<Icon name="material-symbols:skip-previous-rounded" class="text-3xl" aria-hidden="true" />
+		</button>
+		<button
+			class="btn-play w-12 h-12 bg-[var(--btn-regular-bg)] hover:bg-[var(--btn-regular-bg-hover)] active:bg-[var(--btn-regular-bg-active)] text-[var(--primary)] rounded-full flex items-center justify-center transition-all duration-300"
+			title={i18n(I18nKey.musicPlay)}
+			aria-label={i18n(I18nKey.musicPlay)}
+		>
+			<Icon name="material-symbols:play-arrow-rounded" class="icon-play text-3xl ml-0.5" aria-hidden="true" />
+			<Icon name="material-symbols:pause-rounded" class="icon-pause text-3xl hidden" aria-hidden="true" />
+		</button>
+		<button
+			class="btn-next text-neutral-600 dark:text-neutral-300 hover:text-[var(--primary)] transition-colors p-2 active:scale-95"
+			title={i18n(I18nKey.musicNext)}
+			aria-label={i18n(I18nKey.musicNext)}
+		>
+			<Icon name="material-symbols:skip-next-rounded" class="text-3xl" aria-hidden="true" />
+		</button>
+		<button
+			class="btn-drawer-toggle text-neutral-400 hover:text-[var(--primary)] transition-all duration-300 p-2 transform active:scale-95"
+			title={i18n(I18nKey.musicPlaylist)}
+			aria-label={i18n(I18nKey.musicPlaylist)}
+		>
+			<Icon name="material-symbols:queue-music-rounded" class="text-xl" aria-hidden="true" />
+		</button>
+	</div>
+
+	<!-- Lyrics Drawer -->
+	<div
+		class="lrc-drawer grid transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] grid-rows-[0fr] opacity-0"
+	>
+		<div class="overflow-hidden min-h-0">
+			<div class="mt-2 pt-2 border-t border-neutral-100 dark:border-white/5 mx-1">
+				<div
+					class="lrc-container h-48 overflow-y-auto custom-scrollbar flex flex-col items-center gap-2 p-4 py-24 text-center relative scroll-smooth"
+					role="listbox"
+					aria-label={i18n(I18nKey.musicLyrics)}
+				>
+					<div class="text-neutral-400 text-sm py-10" role="option">
+						{i18n(I18nKey.musicNoLyrics)}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Playlist Drawer -->
+	<div
+		class="playlist-drawer grid transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] grid-rows-[0fr] opacity-0"
+	>
+		<div class="overflow-hidden min-h-0">
+			<div class="mt-2 pt-2 border-t border-neutral-100 dark:border-white/5 mx-1">
+				<div
+					class="playlist-container max-h-48 overflow-y-auto custom-scrollbar pr-1 pb-1 relative"
+					role="listbox"
+					aria-label={i18n(I18nKey.musicPlaylist)}
+				>
+					<!-- items rendered by script (Task 8) -->
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Loading Overlay -->
+	<div
+		class="music-loading absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/60 dark:bg-[#1e1e1e]/60 backdrop-blur-[2px] transition-opacity duration-300 opacity-0 pointer-events-none rounded-xl"
+		aria-busy="true"
+		aria-hidden="true"
+	>
+		<div class="w-8 h-8 text-[var(--primary)] animate-spin">
+			<Icon name="material-symbols:sync-rounded" class="text-3xl" aria-hidden="true" />
+		</div>
+	</div>
+</div>
+
+<template id={`playlist-item-template-${widgetId}`}>
+	<div
+		class="playlist-item flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-neutral-50 dark:hover:bg-white/5 transition-colors group"
+	>
+		<div class="w-8 h-8 rounded-md overflow-hidden shrink-0 relative bg-neutral-200 dark:bg-neutral-700">
+			<img src="" class="item-cover w-full h-full object-cover" loading="lazy" alt="" />
+			<div
+				class="item-active-overlay absolute inset-0 bg-[var(--primary)]/20 hidden items-center justify-center"
+			>
+				<div class="eq-bars flex items-end gap-[2px] h-3.5">
+					<span class="eq-bar w-[3px] bg-[var(--primary)] rounded-sm"></span>
+					<span class="eq-bar w-[3px] bg-[var(--primary)] rounded-sm"></span>
+					<span class="eq-bar w-[3px] bg-[var(--primary)] rounded-sm"></span>
+				</div>
+				<svg class="eq-play-icon text-[var(--primary)] hidden" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+					<path d="M8 5v14l11-7z"></path>
+				</svg>
+			</div>
+		</div>
+		<div class="flex-1 min-w-0">
+			<div class="item-title text-xs font-bold text-neutral-700 dark:text-neutral-200 truncate group-hover:text-[var(--primary)] transition-colors"></div>
+			<div class="item-artist text-[10px] text-neutral-400 truncate"></div>
+		</div>
+	</div>
+</template>
+
+<style>
+	@keyframes spin-slow {
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
+	}
+	.animate-spin-slow {
+		animation: spin-slow 10s linear infinite;
+	}
+	.eq-bars .eq-bar {
+		animation: eq-bounce 1.2s ease-in-out infinite;
+	}
+	.eq-bars .eq-bar:nth-child(1) { animation-duration: 0.8s; }
+	.eq-bars .eq-bar:nth-child(2) { animation-duration: 0.6s; animation-delay: 0.15s; }
+	.eq-bars .eq-bar:nth-child(3) { animation-duration: 1.0s; animation-delay: 0.3s; }
+	@keyframes eq-bounce {
+		0%, 100% { height: 4px; }
+		50% { height: 14px; }
+	}
+</style>
+
+<script>
+	import { initMusicManager } from "./manager";
+	import { musicConfig } from "@/config";
+	import I18nKey from "@/i18n/i18nKey";
+	import { i18n } from "@/i18n/translation";
+
+	type WidgetElements = {
+		widget: HTMLElement;
+		loading: HTMLElement;
+		cover: HTMLImageElement;
+		title: HTMLElement;
+		artist: HTMLElement;
+		progressBar: HTMLElement;
+		progressThumb: HTMLElement;
+		progressContainer: HTMLElement;
+		currentTime: HTMLElement;
+		totalTime: HTMLElement;
+		btnPlay: HTMLButtonElement;
+		iconPlay: HTMLElement;
+		iconPause: HTMLElement;
+		btnPrev: HTMLButtonElement;
+		btnNext: HTMLButtonElement;
+		btnRepeat: HTMLButtonElement;
+		iconRepeat: HTMLElement;
+		iconRepeatOne: HTMLElement;
+		iconShuffle: HTMLElement;
+		btnMute: HTMLButtonElement;
+		iconVolHigh: HTMLElement;
+		iconVolMute: HTMLElement;
+		volContainer: HTMLElement;
+		volBar: HTMLElement;
+		btnLrc: HTMLButtonElement;
+		iconLrcOn: HTMLElement;
+		iconLrcOff: HTMLElement;
+		lrcDrawer: HTMLElement;
+		lrcContainer: HTMLElement;
+		btnDrawer: HTMLButtonElement;
+		playlistDrawer: HTMLElement;
+		playlistContainer: HTMLElement;
+		itemTemplate: HTMLTemplateElement;
+	};
+
+	function setupWidget(widget: HTMLElement): void {
+		const widgetId = widget.id;
+		const qs = <T extends Element>(sel: string): T => widget.querySelector(sel) as T;
+
+		const ui: WidgetElements = {
+			widget,
+			loading: qs(".music-loading"),
+			cover: qs(".music-cover"),
+			title: qs(".music-title"),
+			artist: qs(".music-artist"),
+			progressBar: qs(".progress-bar"),
+			progressThumb: qs(".progress-thumb"),
+			progressContainer: qs(".progress-container"),
+			currentTime: qs(".current-time"),
+			totalTime: qs(".total-time"),
+			btnPlay: qs(".btn-play"),
+			iconPlay: qs(".icon-play"),
+			iconPause: qs(".icon-pause"),
+			btnPrev: qs(".btn-prev"),
+			btnNext: qs(".btn-next"),
+			btnRepeat: qs(".btn-repeat"),
+			iconRepeat: qs(".icon-repeat"),
+			iconRepeatOne: qs(".icon-repeat-one"),
+			iconShuffle: qs(".icon-shuffle"),
+			btnMute: qs(".btn-mute"),
+			iconVolHigh: qs(".icon-vol-high"),
+			iconVolMute: qs(".icon-vol-mute"),
+			volContainer: qs(".vol-container"),
+			volBar: qs(".vol-bar"),
+			btnLrc: qs(".btn-lrc-toggle"),
+			iconLrcOn: qs(".icon-lrc-on"),
+			iconLrcOff: qs(".icon-lrc-off"),
+			lrcDrawer: qs(".lrc-drawer"),
+			lrcContainer: qs(".lrc-container"),
+			btnDrawer: qs(".btn-drawer-toggle"),
+			playlistDrawer: qs(".playlist-drawer"),
+			playlistContainer: qs(".playlist-container"),
+			itemTemplate: document.getElementById(`playlist-item-template-${widgetId}`) as HTMLTemplateElement,
+		};
+
+		const critical: (Element | null)[] = [
+			ui.btnPlay, ui.btnRepeat, ui.btnMute, ui.volContainer,
+			ui.btnDrawer, ui.btnLrc, ui.lrcDrawer, ui.lrcContainer,
+			ui.progressContainer, ui.btnNext, ui.btnPrev, ui.loading,
+			ui.cover, ui.title, ui.artist, ui.playlistContainer, ui.itemTemplate,
+		];
+		if (critical.some((el) => !el)) return;
+
+		if (!musicConfig.showLyrics) {
+			ui.btnLrc.classList.add("hidden");
+		}
+
+		const mgr = initMusicManager(musicConfig);
+		const primaryColor =
+			getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#6366f1";
+
+		let isUserScrolling = false;
+		let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+		let renderedPlaylistLen = -1;
+		let renderedCurrentIndex = -1;
+		let renderedLyricsLen = -1;
+		let renderedTrackKey = "";
+		let renderedLrcIndex = -1;
+
+		function setLoading(on: boolean): void {
+			ui.loading.classList.toggle("opacity-0", !on);
+			ui.loading.classList.toggle("pointer-events-none", !on);
+		}
+
+		function updatePlayState(isPlaying: boolean): void {
+			if (isPlaying) {
+				ui.btnPlay.classList.add("bg-[var(--primary)]", "text-white", "hover:brightness-110");
+				ui.btnPlay.classList.remove(
+					"bg-[var(--btn-regular-bg)]",
+					"hover:bg-[var(--btn-regular-bg-hover)]",
+					"active:bg-[var(--btn-regular-bg-active)]",
+					"text-[var(--primary)]",
+				);
+				ui.iconPlay.classList.add("hidden");
+				ui.iconPause.classList.remove("hidden");
+				ui.cover.style.animationPlayState = "running";
+				ui.btnPlay.setAttribute("aria-label", i18n(I18nKey.musicPause));
+				ui.btnPlay.title = i18n(I18nKey.musicPause);
+			} else {
+				ui.btnPlay.classList.remove("bg-[var(--primary)]", "text-white", "hover:brightness-110");
+				ui.btnPlay.classList.add(
+					"bg-[var(--btn-regular-bg)]",
+					"hover:bg-[var(--btn-regular-bg-hover)]",
+					"active:bg-[var(--btn-regular-bg-active)]",
+					"text-[var(--primary)]",
+				);
+				ui.iconPlay.classList.remove("hidden");
+				ui.iconPause.classList.add("hidden");
+				ui.cover.style.animationPlayState = "paused";
+				ui.btnPlay.setAttribute("aria-label", i18n(I18nKey.musicPlay));
+				ui.btnPlay.title = i18n(I18nKey.musicPlay);
+			}
+		}
+
+		function updateModeUI(playMode: "list" | "one" | "random"): void {
+			ui.iconRepeat.classList.toggle("hidden", playMode !== "list");
+			ui.iconRepeatOne.classList.toggle("hidden", playMode !== "one");
+			ui.iconShuffle.classList.toggle("hidden", playMode !== "random");
+			const active = playMode !== "list";
+			ui.btnRepeat.className = `btn-repeat p-2 active:scale-95 transition-colors ${active ? "text-[var(--primary)]" : "text-neutral-300 dark:text-neutral-600 hover:text-[var(--primary)]"}`;
+		}
+
+		function updateVolumeUI(volume: number, isMuted: boolean): void {
+			const pct = isMuted ? 0 : volume * 100;
+			ui.volBar.style.width = `${pct}%`;
+			ui.volContainer.setAttribute("aria-valuenow", String(Math.round(pct)));
+			const silent = isMuted || volume === 0;
+			ui.iconVolHigh.classList.toggle("hidden", silent);
+			ui.iconVolMute.classList.toggle("hidden", !silent);
+		}
+
+		function updateTrackUI(track: { name: string; artist: string; pic?: string } | null): void {
+			if (!track) return;
+			ui.title.textContent = track.name;
+			ui.artist.textContent = track.artist;
+			if (track.pic) {
+				ui.cover.classList.add("opacity-0");
+				ui.cover.src = track.pic;
+				ui.cover.alt = `${track.name} - ${track.artist}`;
+			} else {
+				ui.cover.src = "";
+				ui.cover.classList.add("opacity-0");
+				ui.cover.alt = i18n(I18nKey.musicNoCover);
+			}
+			ui.cover.classList.remove("animate-spin-slow");
+			void ui.cover.offsetWidth;
+			ui.cover.classList.add("animate-spin-slow");
+			ui.cover.style.animationPlayState = "paused";
+			ui.progressBar.style.width = "0%";
+			ui.progressThumb.style.left = "0%";
+			ui.progressContainer.setAttribute("aria-valuenow", "0");
+			ui.currentTime.textContent = "0:00";
+			ui.totalTime.textContent = "0:00";
+		}
+
+		function applyActiveStyle(item: HTMLElement, active: boolean): void {
+			const overlay = item.querySelector(".item-active-overlay") as HTMLElement;
+			const title = item.querySelector(".item-title") as HTMLElement;
+			const isPlaying = mgr.getState().isPlaying;
+			if (active) {
+				item.classList.add("bg-neutral-100", "dark:bg-white/10");
+				item.setAttribute("aria-current", "true");
+				overlay.classList.remove("hidden");
+				overlay.classList.add("flex");
+				title.style.color = primaryColor;
+				const eqBars = item.querySelector(".eq-bars") as HTMLElement;
+				const playIcon = item.querySelector(".eq-play-icon") as HTMLElement;
+				if (isPlaying) {
+					eqBars.classList.remove("hidden");
+					eqBars.classList.add("flex");
+					playIcon.classList.add("hidden");
+				} else {
+					eqBars.classList.add("hidden");
+					eqBars.classList.remove("flex");
+					playIcon.classList.remove("hidden");
+				}
+			} else {
+				item.classList.remove("bg-neutral-100", "dark:bg-white/10");
+				item.removeAttribute("aria-current");
+				overlay.classList.add("hidden");
+				overlay.classList.remove("flex");
+				title.style.color = "";
+			}
+		}
+
+		function renderPlaylist(
+			playlist: { name: string; artist: string; pic?: string }[],
+			currentIndex: number,
+		): void {
+			ui.playlistContainer.innerHTML = "";
+			const frag = document.createDocumentFragment();
+			playlist.forEach((track, idx) => {
+				const clone = ui.itemTemplate.content.cloneNode(true) as DocumentFragment;
+				const item = clone.querySelector(".playlist-item") as HTMLElement;
+				const img = clone.querySelector(".item-cover") as HTMLImageElement;
+				const title = clone.querySelector(".item-title") as HTMLElement;
+				const artist = clone.querySelector(".item-artist") as HTMLElement;
+				img.src = track.pic || "";
+				img.alt = `${track.name} - ${track.artist}`;
+				title.textContent = track.name;
+				artist.textContent = track.artist;
+				item.dataset.index = String(idx);
+				item.setAttribute("role", "option");
+				item.addEventListener("click", () => mgr.playTrackByIndex(idx));
+				if (idx === currentIndex) applyActiveStyle(item, true);
+				frag.appendChild(clone);
+			});
+			ui.playlistContainer.appendChild(frag);
+			renderedPlaylistLen = playlist.length;
+			renderedCurrentIndex = currentIndex;
+		}
+
+		function updatePlaylistActive(currentIndex: number): void {
+			if (renderedPlaylistLen < 0) return;
+			const old = renderedCurrentIndex;
+			const oldEl = ui.playlistContainer.querySelector<HTMLElement>(`.playlist-item[data-index="${old}"]`);
+			if (oldEl) applyActiveStyle(oldEl, false);
+			const newEl = ui.playlistContainer.querySelector<HTMLElement>(`.playlist-item[data-index="${currentIndex}"]`);
+			if (newEl) applyActiveStyle(newEl, true);
+			renderedCurrentIndex = currentIndex;
+		}
+
+		function renderLyrics(lyrics: { time: number; text: string }[]): void {
+			ui.lrcContainer.innerHTML = "";
+			renderedLyricsLen = lyrics.length;
+			if (lyrics.length === 0) {
+				ui.lrcContainer.innerHTML = `<div class="text-neutral-400 text-sm py-10" role="option">${i18n(I18nKey.musicNoLyrics)}</div>`;
+				return;
+			}
+			lyrics.forEach((line, idx) => {
+				const el = document.createElement("div");
+				el.className = "lrc-line transition-[color,transform,opacity] duration-500 ease-out text-sm text-neutral-400 py-1 cursor-pointer hover:text-[var(--primary)]";
+				el.textContent = line.text;
+				el.dataset.index = String(idx);
+				el.setAttribute("role", "option");
+				el.addEventListener("click", () => mgr.seekToTime(line.time));
+				ui.lrcContainer.appendChild(el);
+			});
+		}
+
+		function updateLrcHighlight(index: number): void {
+			if (index === renderedLrcIndex) return;
+			renderedLrcIndex = index;
+			const lines = ui.lrcContainer.querySelectorAll(".lrc-line");
+			lines.forEach((line, i) => {
+				if (i === index) {
+					line.classList.add("text-[var(--primary)]", "font-bold", "scale-110");
+					line.classList.remove("text-neutral-400", "opacity-60");
+				} else {
+					line.classList.remove("text-[var(--primary)]", "font-bold", "scale-110");
+					line.classList.add("text-neutral-400", "opacity-60");
+				}
+			});
+			if (index !== -1 && !isUserScrolling) {
+				const line = ui.lrcContainer.querySelector<HTMLElement>(`.lrc-line[data-index="${index}"]`);
+				if (line) {
+					const target = line.offsetTop - ui.lrcContainer.clientHeight / 2 + line.offsetHeight / 2;
+					ui.lrcContainer.scrollTo({ top: target, behavior: "smooth" });
+				}
+			}
+		}
+
+		function render(state: ReturnType<typeof mgr.getState>): void {
+			if (!state.initialized || state.loading) {
+				setLoading(true);
+				if (!state.initialized) return;
+			} else {
+				setLoading(false);
+			}
+			if (state.playlist.length === 0) {
+				ui.title.textContent = state.error || i18n(I18nKey.musicNoSongs);
+				return;
+			}
+			if (state.lyrics.length !== renderedLyricsLen) {
+				renderLyrics(state.lyrics);
+			}
+			if (state.playlist.length !== renderedPlaylistLen) {
+				renderPlaylist(state.playlist, state.currentIndex);
+			} else if (state.currentIndex !== renderedCurrentIndex) {
+				updatePlaylistActive(state.currentIndex);
+			}
+			if (state.track && state.track.url !== renderedTrackKey) {
+				updateTrackUI(state.track);
+				renderedTrackKey = state.track.url;
+			}
+			updatePlayState(state.isPlaying);
+			updateModeUI(state.playMode);
+			updateVolumeUI(state.volume, state.isMuted);
+			ui.progressBar.style.width = `${state.progress}%`;
+			ui.progressThumb.style.left = `${state.progress}%`;
+			ui.progressContainer.setAttribute("aria-valuenow", String(Math.round(state.progress)));
+			ui.currentTime.textContent = state.currentTimeStr;
+			ui.totalTime.textContent = state.durationStr;
+			updateLrcHighlight(state.currentLrcIndex);
+			if (state.error && state.currentIndex === renderedCurrentIndex) {
+				ui.title.textContent = state.error;
+			}
+		}
+
+		// ── 按钮绑定 ──
+		ui.btnPlay.addEventListener("click", () => mgr.togglePlay());
+		ui.btnNext.addEventListener("click", () => mgr.playNext());
+		ui.btnPrev.addEventListener("click", () => mgr.playPrev());
+		ui.btnRepeat.addEventListener("click", () => mgr.cyclePlayMode());
+		ui.btnMute.addEventListener("click", () => mgr.toggleMute());
+		ui.volContainer.addEventListener("click", (e) => {
+			const rect = ui.volContainer.getBoundingClientRect();
+			mgr.setVolume(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
+		});
+		ui.progressContainer.addEventListener("click", (e) => {
+			const rect = ui.progressContainer.getBoundingClientRect();
+			mgr.seek(Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)));
+		});
+
+		// ── 抽屉开关 ──
+		ui.btnLrc.addEventListener("click", () => {
+			const open = ui.lrcDrawer.style.gridTemplateRows === "1fr";
+			if (open) {
+				ui.lrcDrawer.style.gridTemplateRows = "0fr";
+				ui.lrcDrawer.classList.replace("opacity-100", "opacity-0");
+				ui.iconLrcOn.classList.add("hidden");
+				ui.iconLrcOff.classList.remove("hidden");
+			} else {
+				ui.playlistDrawer.style.gridTemplateRows = "0fr";
+				ui.playlistDrawer.classList.replace("opacity-100", "opacity-0");
+				ui.lrcDrawer.style.gridTemplateRows = "1fr";
+				ui.lrcDrawer.classList.replace("opacity-0", "opacity-100");
+				ui.iconLrcOn.classList.remove("hidden");
+				ui.iconLrcOff.classList.add("hidden");
+			}
+		});
+		ui.btnDrawer.addEventListener("click", () => {
+			const open = ui.playlistDrawer.style.gridTemplateRows === "1fr";
+			if (open) {
+				ui.playlistDrawer.style.gridTemplateRows = "0fr";
+				ui.playlistDrawer.classList.replace("opacity-100", "opacity-0");
+			} else {
+				ui.lrcDrawer.style.gridTemplateRows = "0fr";
+				ui.lrcDrawer.classList.replace("opacity-100", "opacity-0");
+				ui.playlistDrawer.style.gridTemplateRows = "1fr";
+				ui.playlistDrawer.classList.replace("opacity-0", "opacity-100");
+			}
+		});
+
+		// ── 歌词用户滚动检测 ──
+		function resetScrollTimeout(): void {
+			if (scrollTimeout) clearTimeout(scrollTimeout);
+			scrollTimeout = setTimeout(() => {
+				isUserScrolling = false;
+				const idx = mgr.getState().currentLrcIndex;
+				if (idx >= 0) {
+					const line = ui.lrcContainer.querySelector<HTMLElement>(`.lrc-line[data-index="${idx}"]`);
+					if (line) {
+						const target = line.offsetTop - ui.lrcContainer.clientHeight / 2 + line.offsetHeight / 2;
+						ui.lrcContainer.scrollTo({ top: target, behavior: "auto" });
+					}
+				}
+			}, 3000);
+		}
+		ui.lrcContainer.addEventListener("wheel", () => {
+			isUserScrolling = true;
+			resetScrollTimeout();
+		});
+		ui.lrcContainer.addEventListener("touchstart", () => {
+			isUserScrolling = true;
+			resetScrollTimeout();
+		});
+
+		// ── 封面图事件 ──
+		ui.cover.addEventListener("load", () => ui.cover.classList.remove("opacity-0"));
+		ui.cover.addEventListener("error", () => ui.cover.classList.add("opacity-0"));
+
+		// ── 订阅 manager + 首次渲染 ──
+		const unsub = mgr.subscribe((state) => render(state));
+		render(mgr.getState());
+
+		(widget as unknown as { __musicUnsub?: () => void }).__musicUnsub = unsub;
+	}
+
+	function initAll(): void {
+		document.querySelectorAll<HTMLElement>(".music-player-widget").forEach((w) => {
+			if (!(w as unknown as { __musicSetup?: boolean }).__musicSetup) {
+				(w as unknown as { __musicSetup?: boolean }).__musicSetup = true;
+				setupWidget(w);
+			}
+		});
+	}
+
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", initAll);
+	} else {
+		initAll();
+}
+</script>

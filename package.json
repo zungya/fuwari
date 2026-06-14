@@ -10,6 +10,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "type-check": "tsc --noEmit --isolatedDeclarations",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "new-post": "node scripts/new-post.js",
     "format": "biome format --write ./src",
     "lint": "biome check --write ./src",
@@ -70,7 +72,8 @@
     "@types/mdast": "^4.0.4",
     "@types/sanitize-html": "^2.16.0",
     "postcss-import": "^16.1.1",
-    "postcss-nesting": "^13.0.2"
+    "postcss-nesting": "^13.0.2",
+    "vitest": "^4.1.8"
   },
   "packageManager": "pnpm@9.14.4"
 }

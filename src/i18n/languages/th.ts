@@ -35,4 +35,23 @@ export const th: Translation = {
 	[Key.author]: "ผู้เขียน",
 	[Key.publishedAt]: "เผยแพร่เมื่อ",
 	[Key.license]: "สัญญาอนุญาต",
+
+	[Key.music]: "Music", // TODO: translate
+	[Key.musicNoPlaying]: "Not playing", // TODO: translate
+	[Key.musicCover]: "Cover", // TODO: translate
+	[Key.musicLyrics]: "Lyrics", // TODO: translate
+	[Key.musicNoLyrics]: "No lyrics", // TODO: translate
+	[Key.musicLoadingLyrics]: "Loading lyrics…", // TODO: translate
+	[Key.musicFailedLyrics]: "Failed to load lyrics", // TODO: translate
+	[Key.musicNoSongs]: "No songs", // TODO: translate
+	[Key.musicError]: "Playback error", // TODO: translate
+	[Key.musicPlay]: "Play", // TODO: translate
+	[Key.musicPause]: "Pause", // TODO: translate
+	[Key.musicVolume]: "Volume", // TODO: translate
+	[Key.musicPlayMode]: "Play mode", // TODO: translate
+	[Key.musicPrev]: "Previous", // TODO: translate
+	[Key.musicNext]: "Next", // TODO: translate
+	[Key.musicPlaylist]: "Playlist", // TODO: translate
+	[Key.musicProgress]: "Progress", // TODO: translate
+	[Key.musicNoCover]: "No cover", // TODO: translate
 };
